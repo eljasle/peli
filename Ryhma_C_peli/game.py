@@ -1,8 +1,17 @@
 import random
-import story
+import Story
 from geopy import distance
 
 import mysql.connector
+
+conn = mysql.connector.connect (
+    host='localhost',
+    port='3306',
+    database='flight_game',
+    user=config.user,
+    pwd=config.pwd,
+)
+
 
 # 30 random lentokenttää EU alueelta
 def get_airports():
@@ -17,11 +26,3 @@ LIMIT 30;"""
     result = cursor.fetchall()
     return result
 
-conn = mysql.connector.connect (
-    host='localhost',
-    port='3306',
-    database='flight_game',
-    user=config.user,
-    pwd=config.pwd,
-
-)
