@@ -1,15 +1,16 @@
 import random
 import Story
 from geopy import distance
-
+import config
 import mysql.connector
 
-conn = mysql.connector.connect (
+conn = mysql.connector.connect(
     host='localhost',
     port='3306',
     database='flight_game',
     user=config.user,
     pwd=config.pwd,
+    autocommit= True
 )
 
 
