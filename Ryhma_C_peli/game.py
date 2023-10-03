@@ -1,5 +1,5 @@
 import random
-import Story
+import story
 from geopy import distance
 
 import mysql.connector

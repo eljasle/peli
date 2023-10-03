@@ -1,5 +1,5 @@
 import random
-import Story
+import story
 from geopy import distance
 
 import mysql.connector
@@ -39,10 +39,10 @@ def get_goals():
 
 
 # create new game
-def create_game(start_money, p_range, cur_airport, p_name, a_ports):
-    sql = "INSERT INTO game (money, player_range, location, screen_name) VALUES (%s, %s, %s, %s);"
+def create_game(cur_airport, p_name, a_ports):
+    sql = "INSERT INTO game (location, screen_name) VALUES (%s, %s);"
     cursor = conn.cursor(dictionary=True)
-    cursor.execute(sql, (start_money, p_range, cur_airport, p_name))
+    cursor.execute(sql, (cur_airport, p_name))
     g_id = cursor.lastrowid
 
     # add goals
@@ -99,13 +99,8 @@ def calculate_distance(current, target):
 
 
 # get airports in range
-def airports_in_range(icao, a_ports, p_range):
-    in_range = []
-    for a_port in a_ports:
-        dist = calculate_distance(icao, a_port['ident'])
-        if dist <= p_range and not dist == 0:
-            in_range.append(a_port)
-    return in_range
+def airports_in_range(icao, a_ports):
+    return a_ports
 
 # game starts
 # ask to show the story
@@ -122,17 +117,6 @@ player = input('type player name: ')
 game_over = False
 win = False
 
-# start money = 1000
-money = 1000
-# start range in km = 2000
-player_range = 2000
-
-# score = 0
-score = 0
-
-# boolean for diamond found
-diamond_found = False
-
 # all airports
 all_airports = get_airports()
 # start_airport ident
@@ -142,7 +126,7 @@ start_airport = all_airports[0]['ident']
 current_airport = start_airport
 
 # game id
-game_id = create_game(money, player_range, start_airport, player, all_airports)
+game_id = create_game(current_airport, player, all_airports)
 
 # GAME LOOP
 while not game_over:
@@ -150,27 +134,18 @@ while not game_over:
     airport = get_airport_info(current_airport)
     # show game status
     print(f'''You are at {airport['name']}.''')
-    print(f'''You have {money:.0f}$ and {player_range:.0f}km of range.''')
+    print('You have unlimited range.')
     # pause
     input('\033[32mPress Enter to continue...\033[0m')
 
-    # ask to buy fuel/range
-    if money > 0:
-        question2 = input('Do you want to buy fuel? 1$ = 2km of range. Enter amount or press enter. ')
-        if not question2 == '':
-            question2 = float(question2)
-            if question2 > money:
-                print(f'''You don't have enough money.''')
-            else:
-                player_range += question2 * 2
-                money -= question2
-                print(f'''You have now {money:.0f}$ and {player_range:.0f}km of range''')
-        # pause
-        input("\033[32mPress Enter to continue...\033[0m")
+    # if airport has goal ask if player wants to open it
+    # check goal type and add/subtract money accordingly
+    goal = check_goal(game_id, current_airport)
+    if goal:
+        input('Press Enter to continue...')
 
-    # if no range, game over
     # show airports in range. if none, game over
-    airports = airports_in_range(current_airport, all_airports, player_range)
+    airports = airports_in_range(current_airport, all_airports)
     print(f'''\033[34mThere are {len(airports)} airports in range: \033[0m''')
     if len(airports) == 0:
         print('You are out of range.')
@@ -183,18 +158,14 @@ while not game_over:
         # ask for destination
         dest = input('Enter destination icao: ')
         selected_distance = calculate_distance(current_airport, dest)
-        player_range -= selected_distance
-        update_location(dest, player_range, money, game_id)
         current_airport = dest
-        if player_range < 0:
+        if selected_distance > 0:
+            print('You have unlimited range, no need to buy fuel.')
+        # if diamond is found and player is at start, game is won
+        if win and current_airport == start_airport:
+            print(f'''You won! You have unlimited range left.''')
             game_over = True
-    # if diamond is found and player is at start, game is won
-    if win and current_airport == start_airport:
-        print(f'''You won! You have {money}$ and {player_range}km of range left.''')
-        game_over = True
 
 # if game is over loop stops
 # show game result
 print(f'''{'You won!' if win else 'You lost!'}''')
-print(f'''You have {money:.0f}$''')
-print(f'''Your range is {player_range:.0f}km''')
