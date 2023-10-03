@@ -7,7 +7,7 @@ import mysql.connector
 conn = mysql.connector.connect (
     host='localhost',
     port='3306',
-    database='flight_game',
+    database='c_peli',
     user=config.user,
     pwd=config.pwd,
 )
@@ -24,5 +24,25 @@ LIMIT 30;"""
     cursor = conn.cursor(dictionary=True)
     cursor.execute(sql)
     result = cursor.fetchall()
-    return result
+    return
+
+
+
+def update_location(icao, p_range, u_money, g_id):
+    sql = f'''UPDATE game SET location = %s, player_range = %s, money = %s WHERE id = %s'''
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(sql, (icao, p_range, u_money, g_id))
+
+
+
+
+
+def bad_guy(player_range, current_airport,game_id, all_airports):
+
+
+
+
+
+
+
 

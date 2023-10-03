@@ -1,2 +1,2 @@
 user = 'root'
-pwd = 'jotain'
+pwd = 'exel80jajop'
