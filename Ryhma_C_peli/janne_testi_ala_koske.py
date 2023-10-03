@@ -105,6 +105,27 @@ def calculate_distance(current, target):
 def airports_in_range(icao, a_ports):
     return a_ports
 
+# villain of the game
+def villain_moves_rounds():
+    # Step 1: Retrieve a list of airports (you should adapt this to your database structure)
+    sql = "SELECT id, name, latitude_deg, longitude_deg FROM airport;"
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(sql)
+    airports = cursor.fetchall()
+
+    if not airports:
+        print("No airports found in the database.")
+        return
+
+    # Step 2: Randomly select an initial airport for the villain
+    initial_airport = random.choice(airports)
+    current_airport = initial_airport
+    print(f"Villain is on the run in Europe!")
+
+# call villain function
+villain_moves_rounds()
+
+
 # game starts
 # ask to show the story
 storyDialog = input('Do you want to read the background story? (Y/N): ')
