@@ -46,3 +46,14 @@ def bad_guy(player_range, current_airport,game_id, all_airports):
 
 
 
+
+
+
+
+
+# haluuko pelaaja lukea backstoryn
+storyDialog = input('Do you want to read the background story? (Y/N): ')
+if storyDialog == 'Y':
+    # print wrapped string line by line
+    for line in Story.getStory():
+        print(line)
