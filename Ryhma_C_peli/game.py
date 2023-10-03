@@ -27,3 +27,14 @@ LIMIT 30;"""
     result = cursor.fetchall()
     return result
 
+
+
+
+
+
+# haluuko pelaaja lukea backstoryn
+storyDialog = input('Do you want to read the background story? (Y/N): ')
+if storyDialog == 'Y':
+    # print wrapped string line by line
+    for line in Story.getStory():
+        print(line)
