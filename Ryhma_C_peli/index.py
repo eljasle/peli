@@ -106,9 +106,14 @@ def airports_in_range(icao, a_ports):
     return a_ports
 
 # villain of the game
+
+villain_location = None
+villain_visited_airports = 0
+
 def villain_moves_rounds():
-    # Step 1: Retrieve a list of airports (you should adapt this to your database structure)
-    sql = "SELECT id, name, latitude_deg, longitude_deg FROM airport;"
+    global villain_location, villain_visited_airports
+    # Step 1: Retrieve a list of airports
+    sql = "SELECT id, name, latitude_deg, longitude_deg, ident FROM airport;"
     cursor = conn.cursor(dictionary=True)
     cursor.execute(sql)
     airports = cursor.fetchall()
@@ -119,8 +124,14 @@ def villain_moves_rounds():
 
     # Step 2: Randomly select an initial airport for the villain
     initial_airport = random.choice(airports)
-    current_airport = initial_airport
+    villain_location = initial_airport
     print(f"Villain is on the run in Europe!")
+
+
+def villain_has_reached_condition():
+    # For example, if the villain has visited 10 airports, the player loses
+    return villain_visited_airports >= 10
+
 
 # call villain function
 villain_moves_rounds()
@@ -163,11 +174,6 @@ while not game_over:
     # pause
     input('\033[32mPress Enter to continue...\033[0m')
 
-    # if airport has goal ask if player wants to open it
-    # check goal type and add/subtract money accordingly
-    goal = check_goal(game_id, current_airport)
-    if goal:
-        input('Press Enter to continue...')
 
     # show airports in range. if none, game over
     airports = airports_in_range(current_airport, all_airports)
@@ -185,17 +191,28 @@ while not game_over:
         selected_distance = calculate_distance(current_airport, dest)
         current_airport = dest
 
-        # Update the climate temperature for every 1000km flown
+        # Update the climate temperature for every 100km flown
         while selected_distance >= 100:
             climate_temperature += 0.05
             selected_distance -= 100
 
             # Check if the climate temperature has reached a critical point
-            if climate_temperature in [6]:
+            if climate_temperature >= 6:
                 print(f"Climate temperature is now +{climate_temperature:.2f}°C!")
                 print("The world has exploded, and you are doomed!")
                 game_over = True
                 break
+
+        # Check if the player's current airport matches the villain's location
+        if current_airport == villain_location['ident']:
+            print("You found the villain!")
+            win = True
+            game_over = True
+
+        # Check if the villain has reached a certain location
+        if villain_has_reached_condition():
+            print("The villain has escaped, and you lost!")
+            game_over = True
 
 # if game is over loop stops
 # show game result
