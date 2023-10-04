@@ -7,7 +7,7 @@ The only information the council can give is, that BBC is
 hiding and moving along the biggest european Airports, be train.
 NOW! It is up to you hero, to find the BBC and get the climate stabilizer back!
 To help you, the european council sponsors your cross country flights,
-but be aware that each 1000km flown raise the climate by 1C.
+but be aware that each 100km flown raise the climate by 1C.
 Warming the climate by 6 degrees will lead to the world overheating
 and exploding, so be fast and intelligent.
 Also the european country in assembling forces and will help you

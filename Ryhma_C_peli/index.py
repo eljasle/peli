@@ -21,11 +21,9 @@ climate_temperature = 0
 # select 30 airports for the game
 def get_airports():
     sql = """SELECT iso_country, ident, name, type, latitude_deg, longitude_deg
-FROM airport
-WHERE continent = 'EU' 
-AND type='large_airport'
+FROM airport WHERE iso_country = 'BE' and TYPE = 'small_airport'
 ORDER by RAND()
-LIMIT 30;"""
+LIMIT 38;"""
     cursor = conn.cursor(dictionary=True)
     cursor.execute(sql)
     result = cursor.fetchall()
@@ -194,9 +192,9 @@ while not game_over:
         current_airport = dest
 
         # Update the climate temperature for every 100km flown
-        while selected_distance >= 100:
-            climate_temperature += 0.05
-            selected_distance -= 100
+        while selected_distance >= 50:
+            climate_temperature += 0.2
+            selected_distance -= 50
 
             # Check if the climate temperature has reached a critical point
             if climate_temperature >= 6:
