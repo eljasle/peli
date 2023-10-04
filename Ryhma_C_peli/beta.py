@@ -7,9 +7,9 @@ import mysql.connector
 conn = mysql.connector.connect(
     host='localhost',
     port=3306,
-    database='demogame1',
+    database='c:peli',
     user='root',
-    password='rico',
+    password='',
     autocommit=True
 )
 
