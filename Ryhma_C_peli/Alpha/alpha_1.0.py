@@ -4,6 +4,10 @@ from geopy import distance
 
 import mysql.connector
 
+#
+#  TÄMÄ PELI TOIMII JA TÄMÄ ON TOTEUTETTU small_airports AVULLA **VERSION** Alpha 1.0
+#
+
 conn = mysql.connector.connect(
     host='localhost',
     port=3306,
@@ -13,16 +17,17 @@ conn = mysql.connector.connect(
     autocommit=True
 )
 
+# Global variable for climate temperature
+climate_temperature = 0
+
 # FUNCTIONS
 
 # select 30 airports for the game
 def get_airports():
     sql = """SELECT iso_country, ident, name, type, latitude_deg, longitude_deg
-FROM airport
-WHERE continent = 'EU' 
-AND type='large_airport'
+FROM airport WHERE iso_country = 'BE' and TYPE = 'small_airport'
 ORDER by RAND()
-LIMIT 30;"""
+LIMIT 38;"""
     cursor = conn.cursor(dictionary=True)
     cursor.execute(sql)
     result = cursor.fetchall()
@@ -102,6 +107,40 @@ def calculate_distance(current, target):
 def airports_in_range(icao, a_ports):
     return a_ports
 
+# villain of the game
+
+villain_location = None
+villain_visited_airports = 0
+
+all_airports = get_airports()
+
+def villain_moves_rounds(player_airports):
+    global villain_location, villain_visited_airports
+    # Step 1: Retrieve a list of airports
+    sql = "SELECT id, name, latitude_deg, longitude_deg, ident FROM airport;"
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(sql)
+    airports = cursor.fetchall()
+
+    if not player_airports:
+        print("No airports found in the database.")
+        return
+
+    # Step 2: Randomly select an initial airport for the villain
+    initial_airport = random.choice(player_airports)
+    villain_location = initial_airport
+    print(f"Villain is on", villain_location)
+
+
+def villain_has_reached_condition():
+    # For example, if the villain has visited 10 airports, the player loses
+    return villain_visited_airports >= 10
+
+
+# call villain function
+villain_moves_rounds(all_airports)
+
+
 # game starts
 # ask to show the story
 storyDialog = input('Do you want to read the background story? (Y/N): ')
@@ -135,14 +174,10 @@ while not game_over:
     # show game status
     print(f'''You are at {airport['name']}.''')
     print('You have unlimited range.')
+    print(f"Climate temperature is now +{climate_temperature}°C.")
     # pause
     input('\033[32mPress Enter to continue...\033[0m')
 
-    # if airport has goal ask if player wants to open it
-    # check goal type and add/subtract money accordingly
-    goal = check_goal(game_id, current_airport)
-    if goal:
-        input('Press Enter to continue...')
 
     # show airports in range. if none, game over
     airports = airports_in_range(current_airport, all_airports)
@@ -159,13 +194,30 @@ while not game_over:
         dest = input('Enter destination icao: ')
         selected_distance = calculate_distance(current_airport, dest)
         current_airport = dest
-        if selected_distance > 0:
-            print('You have unlimited range, no need to buy fuel.')
-        # if diamond is found and player is at start, game is won
-        if win and current_airport == start_airport:
-            print(f'''You won! You have unlimited range left.''')
+
+        # Update the climate temperature for every 100km flown
+        while selected_distance >= 50:
+            climate_temperature += 0.2
+            selected_distance -= 50
+
+            # Check if the climate temperature has reached a critical point
+            if climate_temperature >= 6:
+                print(f"Climate temperature is now +{climate_temperature:.2f}°C!")
+                print("The world has exploded, and you are doomed!")
+                game_over = True
+                break
+
+        # check if the player's current airport matches the villain's location
+        if current_airport == villain_location['ident']:
+            print("You found the villain!")
+            win = True
             game_over = True
 
-# if game is over loop stops
+        # check if the villain has reached a certain location
+        if villain_has_reached_condition():
+            print("The villain has escaped, and you lost!")
+            game_over = True
+
+
 # show game result
-print(f'''{'You won!' if win else 'You lost!'}''')
+print(f'''{'You won!' if win else 'You lost! Better luck next time'}''')
