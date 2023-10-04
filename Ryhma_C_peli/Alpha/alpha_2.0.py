@@ -5,7 +5,7 @@ from geopy import distance
 import mysql.connector
 
 #
-#  TÄMÄ PELI TOIMII JA TÄMÄ ON TOTEUTETTU small_airports AVULLA **VERSION** Alpha 1.0
+#  TÄMÄ PELI TOIMII JA TÄMÄ ON TOTEUTETTU small_airports AVULLA **VERSION** Alpha 2.0
 #
 
 conn = mysql.connector.connect(
