@@ -203,17 +203,17 @@ while not game_over:
                 game_over = True
                 break
 
-        # Check if the player's current airport matches the villain's location
+        # check if the player's current airport matches the villain's location
         if current_airport == villain_location['ident']:
             print("You found the villain!")
             win = True
             game_over = True
 
-        # Check if the villain has reached a certain location
+        # check if the villain has reached a certain location
         if villain_has_reached_condition():
             print("The villain has escaped, and you lost!")
             game_over = True
 
-# if game is over loop stops
+
 # show game result
-print(f'''{'You won!' if win else 'You lost!'}''')
+print(f'''{'You won!' if win else 'You lost! Better luck next time'}''')
