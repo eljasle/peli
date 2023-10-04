@@ -125,7 +125,7 @@ def villain_moves_rounds(player_airports):
     # Step 2: Randomly select an initial airport for the villain
     initial_airport = random.choice(player_airports)
     villain_location = initial_airport
-    print(f"Villain is on", villain_location)
+    print("Villain is on the loose in Belgium")
 
 
 def villain_has_reached_condition():
@@ -183,13 +183,17 @@ while not game_over:
         game_over = True
     else:
         print(f'''Airports: ''')
-        for airport in airports:
+
+        for i, airport in enumerate(airports, start=1):
             ap_distance = calculate_distance(current_airport, airport['ident'])
-            print(f'''{airport['name']}, icao: {airport['ident']}, distance: {ap_distance:.0f}km''')
+            print(f'''{i}. {airport['name']}, icao: {airport['ident']}, distance: {ap_distance:.0f}km''')
         # ask for destination
-        dest = input('Enter destination icao: ')
-        selected_distance = calculate_distance(current_airport, dest)
-        current_airport = dest
+        dest = int(input('Enter the number of the airport you want to fly to: '))
+        if dest >= 1 and dest <= len(airports):
+            selected_distance = airports[dest - 1]
+            dest = selected_distance['ident']
+            selected_distance = calculate_distance(current_airport, dest)
+            current_airport = dest
 
         # Update the climate temperature for every 100km flown
         while selected_distance >= 50:
