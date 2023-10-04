@@ -7,9 +7,9 @@ import mysql.connector
 conn = mysql.connector.connect(
     host='localhost',
     port=3306,
-    database='c_peli',
+    database='demogame1',
     user='root',
-    password='',
+    password='rico',
     autocommit=True
 )
 
@@ -186,13 +186,16 @@ while not game_over:
         game_over = True
     else:
         print(f'''Airports: ''')
-        for airport in airports:
+        for i, airport in enumerate(airports, start=1):
             ap_distance = calculate_distance(current_airport, airport['ident'])
-            print(f'''{airport['name']}, icao: {airport['ident']}, distance: {ap_distance:.0f}km''')
-        # ask for destination
-        dest = input('Enter destination icao: ')
-        selected_distance = calculate_distance(current_airport, dest)
-        current_airport = dest
+            print(f'''{i}. {airport['name']}, icao: {airport['ident']}, distance: {ap_distance:.0f}km''')
+            # ask for destination
+        dest = int(input('Enter the number of the airport you want to fly to: '))
+        if dest >= 1 and dest <= len(airports):
+            selected_distance = airports[dest - 1]
+            dest = selected_distance['ident']
+            selected_distance = calculate_distance(current_airport, dest)
+            current_airport = dest
 
         # Update the climate temperature for every 100km flown
         while selected_distance >= 100:
