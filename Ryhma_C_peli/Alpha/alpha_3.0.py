@@ -5,7 +5,7 @@ from geopy import distance
 import mysql.connector
 
 #
-#  TÄMÄ PELI TOIMII JA TÄMÄ ON TOTEUTETTU small_airports AVULLA **VERSION** Alpha 2.0
+#  TÄMÄ PELI TOIMII JA TÄMÄ ON TOTEUTETTU small_airports AVULLA **VERSION** Alpha 3.0
 #
 
 conn = mysql.connector.connect(
@@ -34,15 +34,6 @@ LIMIT 38;"""
     return result
 
 
-# get all goals
-def get_goals():
-    sql = "SELECT * FROM goal;"
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(sql)
-    result = cursor.fetchall()
-    return result
-
-
 # create new game
 def create_game(cur_airport, p_name, a_ports):
     sql = "INSERT INTO game (location, screen_name) VALUES (%s, %s);"
@@ -50,21 +41,10 @@ def create_game(cur_airport, p_name, a_ports):
     cursor.execute(sql, (cur_airport, p_name))
     g_id = cursor.lastrowid
 
-    # add goals
-    goals = get_goals()
-    goal_list = []
-    for goal in goals:
-        for i in range(0, goal['probability'], 1):
-            goal_list.append(goal['id'])
 
     # exclude starting airport
     g_ports = a_ports[1:].copy()
     random.shuffle(g_ports)
-
-    for i, goal_id in enumerate(goal_list):
-        sql = "INSERT INTO ports (game, airport, goal) VALUES (%s, %s, %s);"
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(sql, (g_id, g_ports[i]['ident'], goal_id))
 
     return g_id
 
@@ -80,19 +60,6 @@ def get_airport_info(icao):
     return result
 
 
-# check if airport has a goal
-def check_goal(g_id, cur_airport):
-    sql = f'''SELECT ports.id, goal, goal.id as goal_id, name, money 
-    FROM ports 
-    JOIN goal ON goal.id = ports.goal 
-    WHERE game = %s 
-    AND airport = %s'''
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(sql, (g_id, cur_airport))
-    result = cursor.fetchone()
-    if result is None:
-        return False
-    return result
 
 
 # calculate distance between two airports
@@ -116,7 +83,7 @@ all_airports = get_airports()
 
 def villain_moves_rounds(player_airports):
     global villain_location, villain_visited_airports
-    # Retrieve a list of airports
+    # Step 1: Retrieve a list of airports
     sql = "SELECT id, name, latitude_deg, longitude_deg, ident FROM airport;"
     cursor = conn.cursor(dictionary=True)
     cursor.execute(sql)
@@ -126,14 +93,14 @@ def villain_moves_rounds(player_airports):
         print("No airports found in the database.")
         return
 
-    # Randomly select an initial airport for the villain
+    # Step 2: Randomly select an initial airport for the villain
     initial_airport = random.choice(player_airports)
     villain_location = initial_airport
-    print("Villain is on the loose in Belgium")
+    print(f"Villain is on the loose in Belgium", villain_location)
 
 
 def villain_has_reached_condition():
-    # if the villain has visited 10 airports, the player loses
+    # For example, if the villain has visited 10 airports, the player loses
     return villain_visited_airports >= 10
 
 
@@ -200,9 +167,9 @@ while not game_over:
             current_airport = dest
 
         # Update the climate temperature for every 100km flown
-        while selected_distance >= 50:
-            climate_temperature += 0.2
-            selected_distance -= 50
+        while selected_distance >= 5:
+            climate_temperature += 0.025
+            selected_distance -= 5
 
             # Check if the climate temperature has reached a critical point
             if climate_temperature >= 6:
