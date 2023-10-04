@@ -116,7 +116,7 @@ all_airports = get_airports()
 
 def villain_moves_rounds(player_airports):
     global villain_location, villain_visited_airports
-    # Step 1: Retrieve a list of airports
+    # Retrieve a list of airports
     sql = "SELECT id, name, latitude_deg, longitude_deg, ident FROM airport;"
     cursor = conn.cursor(dictionary=True)
     cursor.execute(sql)
@@ -126,14 +126,14 @@ def villain_moves_rounds(player_airports):
         print("No airports found in the database.")
         return
 
-    # Step 2: Randomly select an initial airport for the villain
+    # Randomly select an initial airport for the villain
     initial_airport = random.choice(player_airports)
     villain_location = initial_airport
     print("Villain is on the loose in Belgium")
 
 
 def villain_has_reached_condition():
-    # For example, if the villain has visited 10 airports, the player loses
+    # if the villain has visited 10 airports, the player loses
     return villain_visited_airports >= 10
 
 
