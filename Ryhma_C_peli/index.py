@@ -110,7 +110,9 @@ def airports_in_range(icao, a_ports):
 villain_location = None
 villain_visited_airports = 0
 
-def villain_moves_rounds():
+all_airports = get_airports()
+
+def villain_moves_rounds(player_airports):
     global villain_location, villain_visited_airports
     # Step 1: Retrieve a list of airports
     sql = "SELECT id, name, latitude_deg, longitude_deg, ident FROM airport;"
@@ -118,14 +120,14 @@ def villain_moves_rounds():
     cursor.execute(sql)
     airports = cursor.fetchall()
 
-    if not airports:
+    if not player_airports:
         print("No airports found in the database.")
         return
 
     # Step 2: Randomly select an initial airport for the villain
-    initial_airport = random.choice(airports)
+    initial_airport = random.choice(player_airports)
     villain_location = initial_airport
-    print(f"Villain is on the run in Europe!")
+    print(f"Villain is on", villain_location)
 
 
 def villain_has_reached_condition():
@@ -134,7 +136,7 @@ def villain_has_reached_condition():
 
 
 # call villain function
-villain_moves_rounds()
+villain_moves_rounds(all_airports)
 
 
 # game starts
