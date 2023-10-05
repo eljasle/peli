@@ -18,14 +18,15 @@ climate_temperature = 0
 
 # FUNCTIONS
 
-# select 30 airports for the game
+
 def get_airports():
     sql = """SELECT iso_country, ident, name, type, latitude_deg, longitude_deg
-FROM airport
-WHERE continent = 'EU' 
-AND type='large_airport'
-ORDER by RAND()
-LIMIT 30;"""
+    FROM airport
+    WHERE continent = 'EU' 
+    AND type='large_airport'
+    AND iso_country !='RU'
+    ORDER by RAND()
+    LIMIT 30;"""
     cursor = conn.cursor(dictionary=True)
     cursor.execute(sql)
     result = cursor.fetchall()
@@ -100,19 +101,16 @@ def calculate_distance(current, target):
     return distance.distance((start['latitude_deg'], start['longitude_deg']),
                              (end['latitude_deg'], end['longitude_deg'])).km
 
-
-# get airports in range
 def airports_in_range(icao, a_ports):
     return a_ports
 
-# villain of the game
 
 villain_location = None
 
 
 all_airports = get_airports()
 villain_visited_airports = set()
-def villain_moves_rounds(player_airports):
+def villain(player_airports):
     global villain_location, villain_visited_airports
     # Step 1: Retrieve a list of airports
     sql = "SELECT id, name, latitude_deg, longitude_deg, ident FROM airport;"
@@ -195,7 +193,7 @@ win = False
 
 # all airports
 all_airports = get_airports()
-villain_moves_rounds(all_airports)
+villain(all_airports)
 # start_airport ident
 start_airport = all_airports[0]['ident']
 
@@ -204,6 +202,7 @@ current_airport = start_airport
 
 # game id
 game_id = create_game(current_airport, player, all_airports)
+
 
 # GAME LOOP
 while not game_over:
@@ -219,6 +218,8 @@ while not game_over:
     hint = generate_directional_hints(get_airport_info(current_airport), villain_location)
     print(f"Hint: {hint}")
 
+    airports = airports_in_range(current_airport, all_airports)
+    airports.sort(key=lambda airport: calculate_distance(current_airport, airport['ident']))
 
     # show airports in range. if none, game over
     airports = airports_in_range(current_airport, all_airports)
@@ -230,7 +231,8 @@ while not game_over:
         print(f'''Airports: ''')
         for i, airport in enumerate(airports, start=1):
             ap_distance = calculate_distance(current_airport, airport['ident'])
-            print(f'''{i}. {airport['name']}, icao: {airport['ident']}, distance: {ap_distance:.0f}km''')
+            airport_country = airport['iso_country']
+            print(f'''{i}. {airport['name']}, icao: {airport['ident']}, country: {airport_country}, distance: {ap_distance:.0f}km''')
             # ask for destination
         dest = int(input('Enter the number of the airport you want to fly to: '))
         if dest >= 1 and dest <= len(airports):
