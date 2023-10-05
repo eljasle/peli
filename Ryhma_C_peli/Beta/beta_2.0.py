@@ -7,7 +7,7 @@ import mysql.connector
 conn = mysql.connector.connect(
     host='localhost',
     port=3306,
-    database='c:peli',
+    database='c_peli',
     user='root',
     password='',
     autocommit=True
@@ -108,10 +108,10 @@ def airports_in_range(icao, a_ports):
 # villain of the game
 
 villain_location = None
-villain_visited_airports = 0
+
 
 all_airports = get_airports()
-
+villain_visited_airports = set()
 def villain_moves_rounds(player_airports):
     global villain_location, villain_visited_airports
     # Step 1: Retrieve a list of airports
@@ -127,12 +127,39 @@ def villain_moves_rounds(player_airports):
     # Step 2: Randomly select an initial airport for the villain
     initial_airport = random.choice(player_airports)
     villain_location = initial_airport
+    villain_visited_airports.add(villain_location['ident'])
     print(f"Villain is on", villain_location)
 
 
-def villain_has_reached_condition():
-    # For example, if the villain has visited 10 airports, the player loses
-    return villain_visited_airports >= 10
+def villain_movement():
+    global villain_location
+
+    # Calculate distances from the villain's current location to all airports
+    distances = []
+    for airport in all_airports:
+        if airport['ident'] != villain_location['ident'] and airport['ident'] not in villain_visited_airports:
+            dist = calculate_distance(villain_location['ident'], airport['ident'])
+            distances.append((airport, dist))
+
+    # Sort the airports by distance (in ascending order)
+    distances.sort(key=lambda x: x[1])
+
+    # Select the three closest unvisited airports (excluding the current one)
+    closest_unvisited_airports = [airport for airport in distances if airport[0]['ident'] not in villain_visited_airports][:3]
+
+    if closest_unvisited_airports:
+        # Choose one of the closest unvisited airports randomly
+        chosen_airport = random.choice(closest_unvisited_airports)[0]
+
+        # Update the villain's location to the chosen airport
+        villain_location = chosen_airport
+
+        # Mark the chosen airport as visited
+        villain_visited_airports.add(villain_location['ident'])
+
+       
+    else:
+        print("The villain has visited all available airports.")
 
 
 # call villain function
@@ -142,7 +169,7 @@ def villain_has_reached_condition():
 # game starts
 # ask to show the story
 storyDialog = input('Do you want to read the background story? (Y/N): ')
-if storyDialog == 'Y':
+if storyDialog == 'Y' or storyDialog == "y":
     # print wrapped string line by line
     for line in story.getStory():
         print(line)
@@ -197,6 +224,8 @@ while not game_over:
             selected_distance = calculate_distance(current_airport, dest)
             current_airport = dest
 
+
+
         # Update the climate temperature for every 100km flown
         while selected_distance >= 100:
             climate_temperature += 0.05
@@ -214,11 +243,11 @@ while not game_over:
             print("You found the villain!")
             win = True
             game_over = True
+        else:
+            villain_movement()
 
         # check if the villain has reached a certain location
-        if villain_has_reached_condition():
-            print("The villain has escaped, and you lost!")
-            game_over = True
+
 
 
 # show game result
