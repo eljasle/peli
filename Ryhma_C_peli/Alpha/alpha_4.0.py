@@ -1,5 +1,5 @@
 import random
-import story
+from Ryhma_C_peli.Story import story
 from geopy import distance
 
 import mysql.connector
