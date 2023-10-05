@@ -8,8 +8,7 @@ SPECS:
 
 -hero starts at random airport from 30 airports in europe, can move freely
 
--hero has 200e cash
-
+-hero has unlimited range and fuel
 -villain starts at random airport and can move to one of 3 closest airports every round 
 
 -flights are free because world government sponsors the hero/player
