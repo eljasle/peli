@@ -9,7 +9,7 @@ conn = mysql.connector.connect(
     port=3306,
     database='c:peli',
     user='root',
-    password='',
+    password='exel80jajop',
     autocommit=True
 )
 

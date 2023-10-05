@@ -166,7 +166,7 @@ if storyDialog == 'Y':
 
 # GAME SETTINGS
 print('When you are ready to start, ')
-player = input('type player name: ')
+player = input('Type your player name: ')
 # boolean for game over and win
 game_over = False
 win = False
@@ -246,4 +246,4 @@ while not game_over:
 
 
 # show game result
-print(f'''{'You won!' if win else 'You lost! Better luck next time'}''')
+print(f'''{f'You won! Good job {player}!' if win else f'You lost! Better luck next time {player} :('}''')
