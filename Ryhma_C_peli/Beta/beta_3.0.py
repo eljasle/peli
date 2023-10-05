@@ -9,7 +9,7 @@ conn = mysql.connector.connect(
     port=3306,
     database='c_peli',
     user='root',
-    password='rico',
+    password='exel80jajop',
     autocommit=True
 )
 
@@ -18,15 +18,15 @@ climate_temperature = 0
 
 # FUNCTIONS
 
-
+# select 30 airports for the game
 def get_airports():
     sql = """SELECT iso_country, ident, name, type, latitude_deg, longitude_deg
-    FROM airport
-    WHERE continent = 'EU' 
-    AND type='large_airport'
-    AND iso_country !='RU'
-    ORDER by RAND()
-    LIMIT 30;"""
+FROM airport
+WHERE continent = 'EU' 
+AND type='large_airport'
+AND iso_country!='RU'
+ORDER by RAND()
+LIMIT 30;"""
     cursor = conn.cursor(dictionary=True)
     cursor.execute(sql)
     result = cursor.fetchall()
@@ -101,16 +101,28 @@ def calculate_distance(current, target):
     return distance.distance((start['latitude_deg'], start['longitude_deg']),
                              (end['latitude_deg'], end['longitude_deg'])).km
 
-def airports_in_range(icao, a_ports):
-    return a_ports
 
+# get airports in range
+def airports_in_range(icao, a_ports):
+    airports_with_country = []
+    for airport in a_ports:
+        airport_info = get_airport_info(airport['ident'])
+        airports_with_country.append({
+            'ident': airport['ident'],
+            'name': airport['name'],
+            'distance': calculate_distance(icao, airport['ident']),
+            'country': airport_info['iso_country']
+        })
+    return airports_with_country
+
+# villain of the game
 
 villain_location = None
 
 
 all_airports = get_airports()
 villain_visited_airports = set()
-def villain(player_airports):
+def villain_moves_rounds(player_airports):
     global villain_location, villain_visited_airports
     # Step 1: Retrieve a list of airports
     sql = "SELECT id, name, latitude_deg, longitude_deg, ident FROM airport;"
@@ -136,8 +148,8 @@ def villain_movement():
     distances = []
     for airport in all_airports:
         if airport['ident'] != villain_location['ident'] and airport['ident'] not in villain_visited_airports:
-            etäisyys = calculate_distance(villain_location['ident'], airport['ident'])
-            distances.append((airport, etäisyys))
+            et채isyys = calculate_distance(villain_location['ident'], airport['ident'])
+            distances.append((airport, et채isyys))
 
     # Sort the airports by distance (in ascending order)
     distances.sort(key=lambda x: x[1])
@@ -186,14 +198,14 @@ if storyDialog == 'Y' or storyDialog == "y":
 
 # GAME SETTINGS
 print('When you are ready to start, ')
-player = input('type player name: ')
+player = input('Type your player name: ')
 # boolean for game over and win
 game_over = False
 win = False
 
 # all airports
 all_airports = get_airports()
-villain(all_airports)
+villain_moves_rounds(all_airports)
 # start_airport ident
 start_airport = all_airports[0]['ident']
 
@@ -203,7 +215,6 @@ current_airport = start_airport
 # game id
 game_id = create_game(current_airport, player, all_airports)
 
-
 # GAME LOOP
 while not game_over:
     # get current airport info
@@ -211,18 +222,17 @@ while not game_over:
     # show game status
     print(f'''You are at {airport['name']}.''')
     print('You have unlimited range.')
-    print(f"Climate temperature is now +{climate_temperature}°C.")
+    print(f"Climate temperature is now +{climate_temperature}째C.")
     # pause
     input('\033[32mPress Enter to continue...\033[0m')
 
     hint = generate_directional_hints(get_airport_info(current_airport), villain_location)
     print(f"Hint: {hint}")
 
-    airports = airports_in_range(current_airport, all_airports)
-    airports.sort(key=lambda airport: calculate_distance(current_airport, airport['ident']))
 
     # show airports in range. if none, game over
     airports = airports_in_range(current_airport, all_airports)
+    airports.sort(key=lambda airport: calculate_distance(current_airport, airport['ident']))
     print(f'''\033[34mThere are {len(airports)} airports in range: \033[0m''')
     if len(airports) == 0:
         print('You are out of range.')
@@ -231,8 +241,7 @@ while not game_over:
         print(f'''Airports: ''')
         for i, airport in enumerate(airports, start=1):
             ap_distance = calculate_distance(current_airport, airport['ident'])
-            airport_country = airport['iso_country']
-            print(f'''{i}. {airport['name']}, icao: {airport['ident']}, country: {airport_country}, distance: {ap_distance:.0f}km''')
+            print(f'''{i}. {airport['name']}, Country: {airport['country']}, icao: {airport['ident']}, distance: {ap_distance:.0f}km''')
             # ask for destination
         dest = int(input('Enter the number of the airport you want to fly to: '))
         if dest >= 1 and dest <= len(airports):
@@ -250,7 +259,7 @@ while not game_over:
 
             # Check if the climate temperature has reached a critical point
             if climate_temperature >= 6:
-                print(f"Climate temperature is now +{climate_temperature:.2f}°C!")
+                print(f"Climate temperature is now +{climate_temperature:.2f}째C!")
                 print("The world has exploded, and you are doomed!")
                 game_over = True
                 break
@@ -268,4 +277,4 @@ while not game_over:
 
 
 # show game result
-print(f'''{'You won!' if win else 'You lost! Better luck next time'}''')
+print(f'''{f'You won! Good job {player}!' if win else f'You lost! Better luck next time {player} :('}''')
