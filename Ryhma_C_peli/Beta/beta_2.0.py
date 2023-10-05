@@ -9,7 +9,7 @@ conn = mysql.connector.connect(
     port=3306,
     database='c_peli',
     user='root',
-    password='',
+    password='rico',
     autocommit=True
 )
 
@@ -138,8 +138,8 @@ def villain_movement():
     distances = []
     for airport in all_airports:
         if airport['ident'] != villain_location['ident'] and airport['ident'] not in villain_visited_airports:
-            dist = calculate_distance(villain_location['ident'], airport['ident'])
-            distances.append((airport, dist))
+            etäisyys = calculate_distance(villain_location['ident'], airport['ident'])
+            distances.append((airport, etäisyys))
 
     # Sort the airports by distance (in ascending order)
     distances.sort(key=lambda x: x[1])
@@ -157,13 +157,25 @@ def villain_movement():
         # Mark the chosen airport as visited
         villain_visited_airports.add(villain_location['ident'])
 
-       
+        print("Villain is now in", villain_location)
     else:
         print("The villain has visited all available airports.")
 
 
-# call villain function
+def generate_directional_hints(player_airport, villain_airport):
+    lat_diff = villain_airport['latitude_deg'] - player_airport['latitude_deg']
+    lon_diff = villain_airport['longitude_deg'] - player_airport['longitude_deg']
 
+    if lat_diff > 0 and lon_diff > 0:
+        return "The villain is to the North-East of you."
+    elif lat_diff < 0 and lon_diff > 0:
+        return "The villain is to the South-East of you."
+    elif lat_diff > 0 and lon_diff < 0:
+        return "The villain is to the North-West of you."
+    elif lat_diff < 0 and lon_diff < 0:
+        return "The villain is to the South-West of you."
+    else:
+        return "You're very close to the villain!"
 
 
 # game starts
@@ -203,6 +215,9 @@ while not game_over:
     print(f"Climate temperature is now +{climate_temperature}°C.")
     # pause
     input('\033[32mPress Enter to continue...\033[0m')
+
+    hint = generate_directional_hints(get_airport_info(current_airport), villain_location)
+    print(f"Hint: {hint}")
 
 
     # show airports in range. if none, game over
