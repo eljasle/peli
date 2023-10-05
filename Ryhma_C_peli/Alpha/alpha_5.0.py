@@ -201,6 +201,8 @@ while not game_over:
 
     # show airports in range. if none, game over
     airports = airports_in_range(current_airport, all_airports)
+    airports.sort(key=lambda airport: calculate_distance(current_airport, airport['ident']))
+
     print(f'''\033[34mThere are {len(airports)} airports in range: \033[0m''')
     if len(airports) == 0:
         print('You are out of range.')
