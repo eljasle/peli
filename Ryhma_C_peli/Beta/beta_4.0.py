@@ -9,7 +9,7 @@ conn = mysql.connector.connect(
     port=3306,
     database='c_peli',
     user='root',
-    password='rico',
+    password='exel80jajop',
     autocommit=True
 )
 
@@ -248,6 +248,7 @@ while not game_over:
             ap_distance = calculate_distance(current_airport, airport['ident'])
             print(f'''{i}. {airport['name']}, Country: {airport['country']},  distance: {ap_distance:.0f}km''')
             # ask for destination
+        print(f"Climate temperature is now +{climate_temperature}C.")
         dest = int(input('Enter the number of the airport you want to fly to: '))
         if dest >= 1 and dest <= len(airports):
             selected_distance = airports[dest - 1]
@@ -282,4 +283,4 @@ while not game_over:
 
 
 # show game result
-print(f'''{f'You won! Good job {player}!' if win else f'You lost! Better luck next time {player} :('}''')
+print(f'''{f'You won! Good job {player}! Climate temperature is now +{climate_temperature:.2f}C! ' if win else f'You lost! Better luck next time {player} :('}''')
