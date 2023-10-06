@@ -7,7 +7,7 @@ import mysql.connector
 conn = mysql.connector.connect(
     host='localhost',
     port=3306,
-    database='c_peli',
+    database='demogame1',
     user='root',
     password='rico',
     autocommit=True
@@ -20,16 +20,16 @@ climate_temperature = 0
 
 # select 30 airports for the game
 def get_airports():
-    sql = """SELECT airport.iso_country, airport.ident, airport.name AS airport_name, airport.type, airport.latitude_deg, airport.longitude_deg, country.name AS country_name
-FROM airport
-JOIN country ON airport.iso_country = country.iso_country
-WHERE airport.continent = 'EU' 
-  AND airport.type = 'large_airport'
-  AND airport.iso_country != 'RU'
-ORDER BY RAND()
-LIMIT 30;
-"""
-
+    sql = """
+    SELECT airport.iso_country, airport.ident, airport.name AS airport_name, airport.type, airport.latitude_deg, airport.longitude_deg, country.name AS country_name
+    FROM airport
+    JOIN country ON airport.iso_country = country.iso_country
+    WHERE airport.continent = 'EU' 
+    AND airport.type = 'large_airport'
+    AND airport.iso_country != 'RU'
+    ORDER BY RAND()
+    LIMIT 30;
+    """
 
     cursor = conn.cursor(dictionary=True)
     cursor.execute(sql)
@@ -38,13 +38,6 @@ LIMIT 30;
 
 
 # get all goals
-def get_goals():
-    sql = "SELECT * FROM goal;"
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(sql)
-    result = cursor.fetchall()
-    return result
-
 
 # create new game
 def create_game(cur_airport, p_name, a_ports):
@@ -54,48 +47,28 @@ def create_game(cur_airport, p_name, a_ports):
     g_id = cursor.lastrowid
 
     # add goals
-    goals = get_goals()
-    goal_list = []
-    for goal in goals:
-        for i in range(0, goal['probability'], 1):
-            goal_list.append(goal['id'])
 
-    # exclude starting airport
-    g_ports = a_ports[1:].copy()
-    random.shuffle(g_ports)
-
-    for i, goal_id in enumerate(goal_list):
-        sql = "INSERT INTO ports (game, airport, goal) VALUES (%s, %s, %s);"
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(sql, (g_id, g_ports[i]['ident'], goal_id))
 
     return g_id
 
 
 # get airport info
 def get_airport_info(icao):
-    sql = f'''SELECT iso_country, ident, name, latitude_deg, longitude_deg
-                  FROM airport
-                  WHERE ident = %s'''
+    sql = f'''SELECT airport.iso_country, ident, airport.name AS airport_name, type, latitude_deg, longitude_deg, country.name AS country_name
+FROM airport
+JOIN country ON airport.iso_country = country.iso_country
+WHERE ident = %s'''
     cursor = conn.cursor(dictionary=True)
     cursor.execute(sql, (icao,))
     result = cursor.fetchone()
+    if 'airport_name' not in result or 'country_name' not in result:
+        raise KeyError("Missing keys 'airport_name' and/or 'country_name' in the database result.")
+
     return result
 
 
 # check if airport has a goal
-def check_goal(g_id, cur_airport):
-    sql = f'''SELECT ports.id, goal, goal.id as goal_id, name, money 
-    FROM ports 
-    JOIN goal ON goal.id = ports.goal 
-    WHERE game = %s 
-    AND airport = %s'''
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(sql, (g_id, cur_airport))
-    result = cursor.fetchone()
-    if result is None:
-        return False
-    return result
+
 
 
 # calculate distance between two airports
@@ -115,7 +88,7 @@ def airports_in_range(icao, a_ports):
             'ident': airport['ident'],
             'name': airport['airport_name'],
             'distance': calculate_distance(icao, airport['ident']),
-            'country': airport_info['iso_country']
+            'country': airport_info['country_name']
         })
     return airports_with_country
 
@@ -225,7 +198,7 @@ while not game_over:
     # get current airport info
     airport = get_airport_info(current_airport)
     # show game status
-    print(f'''You are at {airport['name']}.''')
+    print(f'''You are at {airport['airport_name']}.''')
     print('You have unlimited range.')
     print(f"Climate temperature is now +{climate_temperature}C.")
     # pause
@@ -247,7 +220,9 @@ while not game_over:
         for i, airport in enumerate(airports, start=1):
             ap_distance = calculate_distance(current_airport, airport['ident'])
             print(f'''{i}. {airport['name']}, Country: {airport['country']},  distance: {ap_distance:.0f}km''')
-            # ask for destination
+
+        print(f"Climate temperature is now +{climate_temperature}")
+        print(f"Hint: {hint}")
         dest = int(input('Enter the number of the airport you want to fly to: '))
         if dest >= 1 and dest <= len(airports):
             selected_distance = airports[dest - 1]
@@ -282,4 +257,4 @@ while not game_over:
 
 
 # show game result
-print(f'''{f'You won! Good job {player}!' if win else f'You lost! Better luck next time {player} :('}''')
+print(f'''{f'Good job {player}! You chased down the BBC. Climate temperature rose +{climate_temperature:.2f}C, but thanks to you reclaming the climate stabilizer and turning it back on everything is back to normal. Great job!' if win else f'You lost! Better luck next time {player}. The villain location is:  {villain_location["airport_name"]} :('}''')
