@@ -7,7 +7,7 @@ import mysql.connector
 conn = mysql.connector.connect(
     host='localhost',
     port=3306,
-    database='demogame1',
+    database='c_peli',
     user='root',
     password='rico',
     autocommit=True
@@ -95,17 +95,11 @@ def airports_in_range(icao, a_ports):
 # villain of the game
 
 villain_location = None
-
-
 all_airports = get_airports()
-villain_visited_airports = set()
+v_visited_airports = set()
 def villain_moves_rounds(player_airports):
-    global villain_location, villain_visited_airports
-    # Step 1: Retrieve a list of airports
-    sql = "SELECT id, name, latitude_deg, longitude_deg, ident FROM airport;"
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(sql)
-    airports = cursor.fetchall()
+    global villain_location, v_visited_airports
+
 
     if not player_airports:
         print("No airports found in the database.")
@@ -114,7 +108,7 @@ def villain_moves_rounds(player_airports):
     # Step 2: Randomly select an initial airport for the villain
     initial_airport = random.choice(player_airports)
     villain_location = initial_airport
-    villain_visited_airports.add(villain_location['ident'])
+    v_visited_airports.add(villain_location['ident'])
     print(f"Villain is on the run")
 
 
@@ -122,17 +116,16 @@ def villain_movement():
     global villain_location
 
     # Calculate distances from the villain's current location to all airports
-    distances = []
+    etäisyydet = []
     for airport in all_airports:
-        if airport['ident'] != villain_location['ident'] and airport['ident'] not in villain_visited_airports:
+        if airport['ident'] != villain_location['ident'] and airport['ident'] not in v_visited_airports:
             etäisyys = calculate_distance(villain_location['ident'], airport['ident'])
-            distances.append((airport, etäisyys))
+            etäisyydet.append((airport, etäisyys))
 
-    # Sort the airports by distance (in ascending order)
-    distances.sort(key=lambda x: x[1])
+    etäisyydet.sort(key=lambda x: x[1])
 
     # Select the three closest unvisited airports (excluding the current one)
-    closest_unvisited_airports = [airport for airport in distances if airport[0]['ident'] not in villain_visited_airports][:3]
+    closest_unvisited_airports = [airport for airport in etäisyydet if airport[0]['ident'] not in v_visited_airports][:3]
 
     if closest_unvisited_airports:
         # Choose one of the closest unvisited airports randomly
@@ -143,9 +136,9 @@ def villain_movement():
             villain_location = chosen_airport
 
         # Mark the chosen airport as visited
-            villain_visited_airports.add(villain_location['ident'])
+            v_visited_airports.add(villain_location['ident'])
 
-        #print("Villain is now in", villain_location)
+
     else:
         print("The villain has visited all available airports.")
 
